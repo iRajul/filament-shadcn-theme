@@ -1,0 +1,55 @@
+{
+    "name": "irajul/filament-shadcn-theme",
+    "description": "A configurable shadcn-inspired theme plugin for Filament panels.",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Rajul Jain"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^5.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.8|^4.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Irajul\\FilamentShadcnTheme\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Irajul\\FilamentShadcnTheme\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Irajul\\FilamentShadcnTheme\\FilamentShadcnThemeServiceProvider"
+            ]
+        }
+    },
+    "keywords": [
+        "filament",
+        "filament-plugin",
+        "filament-theme",
+        "shadcn",
+        "theme"
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
