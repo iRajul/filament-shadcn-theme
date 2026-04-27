@@ -1,5 +1,5 @@
 {
-    "name": "PullPkg Private Composer Packages",
+    "name": "pullpkg/private-packages",
     "homepage": "https://app.pullpkg.dev",
     "repositories": [
         {
