@@ -1,3 +1,7 @@
 /vendor
 /composer.lock
 /.phpunit.result.cache
+/deploy/satis-caddy/auth.json
+/deploy/satis-caddy/users.caddy
+/deploy/satis-caddy/public/*
+!/deploy/satis-caddy/public/.gitkeep

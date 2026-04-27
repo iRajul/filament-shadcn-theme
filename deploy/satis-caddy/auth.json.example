@@ -1,0 +1,5 @@
+{
+    "github-oauth": {
+        "github.com": "github_pat_REPLACE_WITH_READ_ONLY_TOKEN"
+    }
+}

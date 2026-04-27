@@ -1,0 +1,14 @@
+app.pullpkg.dev {
+    root * /srv/pullpkg
+    encode zstd gzip
+
+    basic_auth {
+        import /etc/caddy/users.caddy
+    }
+
+    header {
+        X-Robots-Tag "noindex, nofollow"
+    }
+
+    file_server
+}
