@@ -262,6 +262,11 @@ class CssRenderer
 }
 
 @media (min-width: 1024px) {
+    .fi-body-has-topbar .fi-main-sidebar {
+        height: var(--fs-sidebar-topbar-height) !important;
+        min-height: var(--fs-sidebar-topbar-height) !important;
+    }
+
     .fi-topbar-collapse-sidebar-btn-ctn {
         display: block !important;
     }
@@ -345,6 +350,11 @@ class CssRenderer
 
 {$selectors['sidebarGroup']} {
     padding: var(--fs-sidebar-group-padding) 0 !important;
+}
+
+.fi-sidebar-group.fi-collapsed .fi-sidebar-group-items,
+.fi-sidebar-group.fi-collapsed .fi-sidebar-sub-group-items {
+    display: none !important;
 }
 
 {$selectors['sidebarGroupButton']} {
@@ -797,6 +807,19 @@ class CssRenderer
 }
 
 .fi-ta-table .fi-ta-actions .fi-icon-btn.fi-ac-icon-btn-group:hover {
+    background: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
+.fi-ta-table .fi-ta-actions .fi-btn.fi-ac-btn-group {
+    background: color-mix(in oklch, var(--secondary) 68%, transparent) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--foreground) !important;
+    min-height: var(--fs-control-height-sm);
+    padding-inline: 0.625rem !important;
+}
+
+.fi-ta-table .fi-ta-actions .fi-btn.fi-ac-btn-group:hover {
     background: var(--accent) !important;
     color: var(--accent-foreground) !important;
 }

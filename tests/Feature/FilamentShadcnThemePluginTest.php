@@ -42,7 +42,8 @@ it('uses lyra and taupe as publishable package defaults', function (): void {
         ->and($config->menuColor)->toBe(MenuColor::Default)
         ->and($config->menuAccent)->toBe(MenuAccent::Subtle)
         ->and($config->sidebarVariant)->toBe(SidebarVariant::Sidebar)
-        ->and($config->surfaceShadow)->toBe(SurfaceShadow::ExtraSmall);
+        ->and($config->surfaceShadow)->toBe(SurfaceShadow::ExtraSmall)
+        ->and($config->style->variables()['fs-sidebar-section-gap'])->toBe('0.375rem');
 });
 
 it('renders configurable shadcn tokens and Filament selectors without a host app test case', function (): void {
@@ -97,6 +98,7 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('--fs-table-selection-cell-width:')
         ->toContain('--fs-pagination-height:')
         ->toContain('--fs-sidebar-section-gap:')
+        ->toContain('--fs-sidebar-topbar-height:')
         ->toContain('--fs-sidebar-item-padding-y:')
         ->toContain('--fs-checkbox-background:')
         ->toContain('--fs-dark-checkbox-checked-icon:')
@@ -110,7 +112,9 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('.custom-theme-button:focus-visible')
         ->toContain('.fi-sidebar-group-btn')
         ->toContain('.fi-sidebar-nav-groups')
+        ->toContain('.fi-body-has-topbar .fi-main-sidebar')
         ->toContain('.fi-body-has-topbar .fi-sidebar-header-ctn')
+        ->toContain('.fi-sidebar-group.fi-collapsed .fi-sidebar-group-items')
         ->toContain('.fi-topbar-collapse-sidebar-btn-ctn')
         ->toContain('.fi-topbar > .fi-topbar-close-sidebar-btn')
         ->toContain('.fi-page-header-main-ctn')
@@ -130,6 +134,9 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('.fi-ta-table .fi-ta-col > .fi-ta-text')
         ->toContain('padding: var(--fs-table-cell-padding-y) var(--fs-table-cell-padding-x) !important;')
         ->toContain('.fi-ta-table .fi-ta-actions .fi-icon-btn.fi-ac-icon-btn-group')
+        ->toContain('.fi-ta-table .fi-ta-actions .fi-btn.fi-ac-btn-group')
+        ->toContain('background: color-mix(in oklch, var(--secondary) 68%, transparent) !important;')
+        ->toContain('padding-inline: 0.625rem !important;')
         ->toContain('.fi-pagination')
         ->toContain('display: flex !important;')
         ->toContain('.fi-pagination-items')
@@ -148,6 +155,45 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('.fi-fo-repeater-item')
         ->toContain('.fi-btn-group')
         ->toContain('html.fi.dark .fi-input-wrp');
+});
+
+it('renders JetBrains Mono when configured through the plugin API', function (): void {
+    $plugin = FilamentShadcnThemePlugin::make(ThemeConfig::make())
+        ->font('jetbrains-mono');
+
+    $css = filamentShadcnThemeTestRenderer()->render($plugin->config());
+
+    expect($plugin->config()->font)->toBe('jetbrains-mono')
+        ->and((new FontRegistry)->panelFamily($plugin->config()->font))->toBe('JetBrains Mono')
+        ->and($css)->toContain('--font-sans: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;')
+        ->toContain('--font-heading: var(--font-sans);')
+        ->toContain('font-family: var(--font-sans);');
+});
+
+it('keeps table action group buttons compact and theme-colored', function (): void {
+    $css = filamentShadcnThemeTestRenderer()->render(ThemeConfig::make());
+
+    expect($css)
+        ->toContain(".fi-ta-table .fi-ta-actions .fi-btn.fi-ac-btn-group {\n    background: color-mix(in oklch, var(--secondary) 68%, transparent) !important;")
+        ->toContain('border: 1px solid var(--border) !important;')
+        ->toContain('min-height: var(--fs-control-height-sm);')
+        ->toContain('padding-inline: 0.625rem !important;')
+        ->toContain(".fi-ta-table .fi-ta-actions .fi-btn.fi-ac-btn-group:hover {\n    background: var(--accent) !important;");
+});
+
+it('keeps collapsed sidebar group spacing stable while hiding collapsed children', function (): void {
+    $config = ThemeConfig::make()
+        ->style(StyleVariant::Lyra);
+    $css = filamentShadcnThemeTestRenderer()->render($config);
+
+    expect($config->style->variables()['fs-sidebar-section-gap'])->toBe('0.375rem')
+        ->and($css)->toContain('--fs-sidebar-section-gap: 0.375rem;')
+        ->toContain(".fi-sidebar-nav-groups {\n    margin-inline: 0 !important;\n    gap: var(--fs-sidebar-section-gap) !important;")
+        ->toContain(".fi-sidebar-group.fi-collapsed .fi-sidebar-group-items,\n.fi-sidebar-group.fi-collapsed .fi-sidebar-sub-group-items {\n    display: none !important;")
+        ->not->toContain('.fi-sidebar-nav-groups:has(.fi-sidebar-group.fi-collapsed)')
+        ->not->toContain('--fs-sidebar-collapsed-section-gap')
+        ->not->toContain('--fs-sidebar-collapsed-group-padding-y')
+        ->not->toContain(".fi-sidebar-group.fi-collapsed {\n    padding-block:");
 });
 
 it('builds fluent plugin configuration without reading host application config', function (): void {
