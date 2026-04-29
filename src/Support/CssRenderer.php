@@ -386,6 +386,36 @@ class CssRenderer
     gap: var(--fs-sidebar-item-gap) !important;
 }
 
+.fi-sidebar-sub-group-items {
+    position: relative;
+    gap: var(--fs-sidebar-sub-group-gap) !important;
+    margin-block: var(--fs-sidebar-sub-group-margin-y) !important;
+}
+
+.fi-sidebar-sub-group-items::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--fs-sidebar-sub-group-rail-inset-y);
+    inset-inline-start: var(--fs-sidebar-sub-group-rail-left);
+    width: var(--fs-sidebar-sub-group-rail-width);
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--sidebar-border) 86%, transparent);
+}
+
+.fi-sidebar-sub-group-items > .fi-sidebar-item > .fi-sidebar-item-btn {
+    padding-inline-start: var(--fs-sidebar-sub-item-padding-start) !important;
+    color: color-mix(in oklch, var(--sidebar-foreground) 74%, transparent) !important;
+}
+
+.fi-sidebar-sub-group-items > .fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-label {
+    color: inherit !important;
+    font-weight: 500;
+}
+
+.fi-sidebar-sub-group-items .fi-sidebar-item-grouped-border {
+    display: none !important;
+}
+
 {$selectors['sidebarItem']} {
     min-height: var(--fs-sidebar-item-height);
     border-radius: var(--fs-sidebar-item-radius) !important;

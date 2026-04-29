@@ -100,6 +100,7 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('--fs-sidebar-section-gap:')
         ->toContain('--fs-sidebar-topbar-height:')
         ->toContain('--fs-sidebar-item-padding-y:')
+        ->toContain('--fs-sidebar-sub-item-padding-start:')
         ->toContain('--fs-checkbox-background:')
         ->toContain('--fs-dark-checkbox-checked-icon:')
         ->toContain('--fs-page-header-main-padding-y:')
@@ -112,6 +113,7 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('.custom-theme-button:focus-visible')
         ->toContain('.fi-sidebar-group-btn')
         ->toContain('.fi-sidebar-nav-groups')
+        ->toContain('.fi-sidebar-sub-group-items::before')
         ->toContain('.fi-body-has-topbar .fi-main-sidebar')
         ->toContain('.fi-body-has-topbar .fi-sidebar-header-ctn')
         ->toContain('.fi-sidebar-group.fi-collapsed .fi-sidebar-group-items')
@@ -194,6 +196,21 @@ it('keeps collapsed sidebar group spacing stable while hiding collapsed children
         ->not->toContain('--fs-sidebar-collapsed-section-gap')
         ->not->toContain('--fs-sidebar-collapsed-group-padding-y')
         ->not->toContain(".fi-sidebar-group.fi-collapsed {\n    padding-block:");
+});
+
+it('indents sidebar sub navigation with a continuous rail', function (): void {
+    $config = ThemeConfig::make()
+        ->style(StyleVariant::Lyra);
+    $css = filamentShadcnThemeTestRenderer()->render($config);
+
+    expect($config->style->variables()['fs-sidebar-sub-group-gap'])->toBe('0.375rem')
+        ->and($config->style->variables()['fs-sidebar-sub-group-margin-y'])->toBe('0.25rem')
+        ->and($css)->toContain('--fs-sidebar-sub-item-padding-start: calc(var(--fs-sidebar-item-padding-x) + var(--fs-icon-size) + 0.5rem);')
+        ->toContain(".fi-sidebar-sub-group-items {\n    position: relative;\n    gap: var(--fs-sidebar-sub-group-gap) !important;")
+        ->toContain(".fi-sidebar-sub-group-items::before {\n    content: \"\";\n    position: absolute;")
+        ->toContain('inset-inline-start: var(--fs-sidebar-sub-group-rail-left);')
+        ->toContain(".fi-sidebar-sub-group-items > .fi-sidebar-item > .fi-sidebar-item-btn {\n    padding-inline-start: var(--fs-sidebar-sub-item-padding-start) !important;")
+        ->toContain(".fi-sidebar-sub-group-items .fi-sidebar-item-grouped-border {\n    display: none !important;");
 });
 
 it('builds fluent plugin configuration without reading host application config', function (): void {
