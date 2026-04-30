@@ -213,6 +213,58 @@ it('indents sidebar sub navigation with a continuous rail', function (): void {
         ->toContain(".fi-sidebar-sub-group-items .fi-sidebar-item-grouped-border {\n    display: none !important;");
 });
 
+it('indents sidebar links nested under icon navigation groups', function (): void {
+    $css = filamentShadcnThemeTestRenderer()->render(ThemeConfig::make());
+
+    expect($css)
+        ->toContain('.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items')
+        ->toContain(".fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-btn {\n    background: transparent !important;\n    color: var(--sidebar-foreground) !important;")
+        ->toContain('font-size: var(--fs-font-size-sm);')
+        ->toContain('gap: 0.5rem;')
+        ->toContain(".fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-btn > .fi-sidebar-group-label {\n    color: inherit !important;")
+        ->toContain('.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items::before')
+        ->toContain('.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items > .fi-sidebar-item > .fi-sidebar-item-btn')
+        ->toContain('padding-inline-start: var(--fs-sidebar-sub-item-padding-start) !important;')
+        ->toContain('justify-content: flex-start;')
+        ->toContain('.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items .fi-sidebar-item-grouped-border')
+        ->toContain('display: none !important;');
+});
+
+it('keeps the standard sidebar in document flow when a topbar is present', function (): void {
+    $standardCss = filamentShadcnThemeTestRenderer()->render(
+        ThemeConfig::make()->sidebarVariant(SidebarVariant::Sidebar),
+    );
+    $floatingCss = filamentShadcnThemeTestRenderer()->render(
+        ThemeConfig::make()->sidebarVariant(SidebarVariant::Floating),
+    );
+
+    expect($standardCss)
+        ->toContain('--fs-layout-desktop-height: auto;')
+        ->toContain('--fs-sidebar-rail-display: block;')
+        ->toContain('--fs-sidebar-desktop-position: relative;')
+        ->toContain('--fs-sidebar-desktop-align-self: stretch;')
+        ->toContain('--fs-sidebar-desktop-top: auto;')
+        ->toContain('--fs-sidebar-desktop-bottom: auto;')
+        ->toContain('--fs-sidebar-desktop-height: auto;')
+        ->toContain('--fs-sidebar-desktop-min-height: var(--fs-sidebar-topbar-height);')
+        ->toContain('--fs-collapsed-sidebar-top: auto;')
+        ->toContain('--fs-collapsed-sidebar-height: auto;')
+        ->toContain(".fi-body-has-topbar .fi-layout {\n        height: var(--fs-layout-desktop-height) !important;\n        min-height: var(--fs-layout-desktop-min-height) !important;\n        position: relative;\n    }")
+        ->toContain(".fi-body-has-topbar .fi-layout::before {\n        background: var(--sidebar);\n        border-inline-end: var(--fs-shell-divider-width) solid var(--sidebar-border);\n        content: \"\";\n        display: var(--fs-sidebar-rail-display);\n        inset-block: 0;\n        inset-inline-start: 0;\n        pointer-events: none;\n        position: absolute;\n        width: var(--fs-sidebar-rail-width);\n        z-index: 0;\n    }")
+        ->toContain("html.fi:has(.fi-main-sidebar:not(.fi-sidebar-open)) .fi-layout {\n        --fs-sidebar-rail-width: var(--fs-collapsed-sidebar-width);\n    }")
+        ->toContain(".fi-body-has-topbar .fi-main-sidebar {\n        align-self: var(--fs-sidebar-desktop-align-self) !important;\n        bottom: var(--fs-sidebar-desktop-bottom) !important;\n        height: var(--fs-sidebar-desktop-height) !important;\n        min-height: var(--fs-sidebar-desktop-min-height) !important;\n        position: var(--fs-sidebar-desktop-position) !important;\n        top: var(--fs-sidebar-desktop-top) !important;\n    }")
+        ->toContain(".fi-body-has-topbar .fi-main-ctn {\n        position: relative;\n        z-index: 1;\n    }");
+
+    expect($floatingCss)
+        ->toContain('--fs-layout-desktop-height: 100%;')
+        ->toContain('--fs-sidebar-rail-display: none;')
+        ->toContain('--fs-sidebar-desktop-position: sticky;')
+        ->toContain('--fs-sidebar-desktop-align-self: flex-start;')
+        ->toContain('--fs-sidebar-desktop-top: var(--fs-topbar-height);')
+        ->toContain('--fs-sidebar-desktop-height: var(--fs-sidebar-topbar-height);')
+        ->toContain('--fs-collapsed-sidebar-top: var(--fs-topbar-height);');
+});
+
 it('builds fluent plugin configuration without reading host application config', function (): void {
     $plugin = FilamentShadcnThemePlugin::make(ThemeConfig::make())
         ->style('mira')

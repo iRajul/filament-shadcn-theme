@@ -262,9 +262,45 @@ class CssRenderer
 }
 
 @media (min-width: 1024px) {
+    .fi-body-has-topbar .fi-layout {
+        height: var(--fs-layout-desktop-height) !important;
+        min-height: var(--fs-layout-desktop-min-height) !important;
+        position: relative;
+    }
+
+    .fi-body-has-topbar .fi-layout::before {
+        background: var(--sidebar);
+        border-inline-end: var(--fs-shell-divider-width) solid var(--sidebar-border);
+        content: "";
+        display: var(--fs-sidebar-rail-display);
+        inset-block: 0;
+        inset-inline-start: 0;
+        pointer-events: none;
+        position: absolute;
+        width: var(--fs-sidebar-rail-width);
+        z-index: 0;
+    }
+
+    html.fi:has(.fi-main-sidebar.fi-sidebar-open) .fi-layout {
+        --fs-sidebar-rail-width: var(--fs-sidebar-width);
+    }
+
+    html.fi:has(.fi-main-sidebar:not(.fi-sidebar-open)) .fi-layout {
+        --fs-sidebar-rail-width: var(--fs-collapsed-sidebar-width);
+    }
+
     .fi-body-has-topbar .fi-main-sidebar {
-        height: var(--fs-sidebar-topbar-height) !important;
-        min-height: var(--fs-sidebar-topbar-height) !important;
+        align-self: var(--fs-sidebar-desktop-align-self) !important;
+        bottom: var(--fs-sidebar-desktop-bottom) !important;
+        height: var(--fs-sidebar-desktop-height) !important;
+        min-height: var(--fs-sidebar-desktop-min-height) !important;
+        position: var(--fs-sidebar-desktop-position) !important;
+        top: var(--fs-sidebar-desktop-top) !important;
+    }
+
+    .fi-body-has-topbar .fi-main-ctn {
+        position: relative;
+        z-index: 1;
     }
 
     .fi-topbar-collapse-sidebar-btn-ctn {
@@ -382,16 +418,34 @@ class CssRenderer
     font-weight: 500;
 }
 
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-btn {
+    background: transparent !important;
+    color: var(--sidebar-foreground) !important;
+    font-size: var(--fs-font-size-sm);
+    font-weight: var(--fs-font-weight-medium);
+    gap: 0.5rem;
+    line-height: 1.25;
+    transition: background-color var(--fs-transition-duration), color var(--fs-transition-duration);
+}
+
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-btn > .fi-sidebar-group-label {
+    color: inherit !important;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
 {$selectors['sidebarGroupItems']} {
     gap: var(--fs-sidebar-item-gap) !important;
 }
 
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items,
 .fi-sidebar-sub-group-items {
     position: relative;
     gap: var(--fs-sidebar-sub-group-gap) !important;
     margin-block: var(--fs-sidebar-sub-group-margin-y) !important;
 }
 
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items::before,
 .fi-sidebar-sub-group-items::before {
     content: "";
     position: absolute;
@@ -402,16 +456,20 @@ class CssRenderer
     background: color-mix(in oklch, var(--sidebar-border) 86%, transparent);
 }
 
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items > .fi-sidebar-item > .fi-sidebar-item-btn,
 .fi-sidebar-sub-group-items > .fi-sidebar-item > .fi-sidebar-item-btn {
     padding-inline-start: var(--fs-sidebar-sub-item-padding-start) !important;
     color: color-mix(in oklch, var(--sidebar-foreground) 74%, transparent) !important;
+    justify-content: flex-start;
 }
 
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items > .fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-label,
 .fi-sidebar-sub-group-items > .fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-label {
     color: inherit !important;
     font-weight: 500;
 }
 
+.fi-sidebar-group:has(> .fi-sidebar-group-btn > .fi-icon) > .fi-sidebar-group-items .fi-sidebar-item-grouped-border,
 .fi-sidebar-sub-group-items .fi-sidebar-item-grouped-border {
     display: none !important;
 }
