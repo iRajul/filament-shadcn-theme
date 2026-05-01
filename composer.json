@@ -1,8 +1,9 @@
 {
     "name": "irajul/filament-shadcn-theme",
-    "description": "A configurable shadcn-inspired theme plugin for Filament panels.",
+    "description": "A configurable, shadcn-inspired theme plugin for Filament panels.",
     "type": "library",
-    "license": "proprietary",
+    "license": "MIT",
+    "homepage": "https://github.com/iRajul/filament-shadcn-theme",
     "authors": [
         {
             "name": "Rajul Jain"
@@ -44,12 +45,20 @@
         }
     },
     "keywords": [
+        "admin-panel",
         "filament",
+        "filamentphp",
         "filament-plugin",
         "filament-theme",
+        "laravel",
         "shadcn",
+        "shadcn-ui",
         "theme"
     ],
+    "support": {
+        "issues": "https://github.com/iRajul/filament-shadcn-theme/issues",
+        "source": "https://github.com/iRajul/filament-shadcn-theme"
+    },
     "minimum-stability": "stable",
     "prefer-stable": true
 }

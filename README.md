@@ -2,7 +2,17 @@
 
 A configurable shadcn-inspired theme plugin for Filament v5 panels.
 
+[![Tests](https://github.com/iRajul/filament-shadcn-theme/actions/workflows/tests.yml/badge.svg)](https://github.com/iRajul/filament-shadcn-theme/actions/workflows/tests.yml)
+
 The package maps shadcn-style tokens onto Filament's generated HTML, so it can theme navigation, topbar, cards, forms, tables, pagination, checkboxes, empty states, modals, dropdowns, widgets, and light/dark mode without requiring a Vite asset build.
+
+## Features
+
+- Filament v5 panel plugin with Laravel package auto-discovery.
+- shadcn-inspired color, radius, font, menu, sidebar, chart, and surface tokens.
+- Light and dark token output with optional panel theme-mode helpers.
+- Inline CSS by default, with an optional cached asset mode for production panels.
+- Package-local Pest and Testbench coverage, so the package can be tested without a host app.
 
 ## Requirements
 
@@ -12,7 +22,7 @@ The package maps shadcn-style tokens onto Filament's generated HTML, so it can t
 
 ## Installation
 
-If the package is available through your private Composer repository:
+Install the package with Composer:
 
 ```bash
 composer require irajul/filament-shadcn-theme
@@ -75,6 +85,7 @@ The default package look is intentionally sharp and shadcn-like:
     'font' => 'inter',
     'heading_font' => 'inherit',
     'icon_library' => 'lucide',
+    'css_mode' => 'inline',
     'radius' => 'none',
     'menu_color' => 'default',
     'menu_accent' => 'subtle',
@@ -231,6 +242,33 @@ IconLibrary::Radix
 
 String values: `lucide`, `heroicons`, `tabler`, `phosphor`, `radix`.
 
+### CSS Mode
+
+Controls how generated CSS is delivered.
+
+Available values:
+
+```php
+CssMode::Inline
+CssMode::CachedAsset
+```
+
+String values: `inline`, `cached-asset`.
+
+`inline` injects a generated `<style>` tag into the Filament panel and is the default because it requires no writable public directory. `cached-asset` writes a hashed stylesheet to `public/vendor/filament-shadcn-theme` and injects a `<link>` tag instead.
+
+```php
+FilamentShadcnThemePlugin::make()
+    ->cssMode('cached-asset')
+```
+
+You can warm or clear cached CSS assets from Artisan:
+
+```bash
+php artisan filament-shadcn-theme:cache --panel=admin
+php artisan filament-shadcn-theme:clear --panel=admin
+```
+
 ### Menu Color
 
 Controls sidebar color treatment.
@@ -341,6 +379,7 @@ return [
     'font' => 'inter',
     'heading_font' => 'inherit',
     'icon_library' => 'lucide',
+    'css_mode' => 'inline',
     'radius' => 'none',
     'menu_color' => 'default',
     'menu_accent' => 'subtle',
@@ -370,32 +409,24 @@ Then register the plugin with no extra arguments:
 Package tests live inside this package, not in the host Laravel app.
 
 ```bash
+composer validate --strict
 composer install
 composer test
 ```
 
 The tests are intentionally standalone. They exercise configuration hydration, fluent plugin configuration, shadcn token rendering, Filament selector coverage, light/dark token output, and the exposed option enums without relying on a host application's test case.
 
-## Private Composer Distribution
+## Contributing
 
-This repository includes `satis.json.example` and a full setup guide in `docs/private-composer-distribution.md`.
+Issues and pull requests are welcome. Please read `CONTRIBUTING.md` before opening larger changes so setup, tests, and release expectations stay predictable.
 
-Short version:
+## Security
 
-```bash
-composer create-project composer/satis satis dev-main
-cd satis
-php bin/satis build satis.json public/
-```
+Please do not open public issues for suspected vulnerabilities. Follow the private reporting process in `SECURITY.md`.
 
-Point `satis.json` at this package's private Git repository, serve the generated `public/` directory over HTTPS, and add it to consuming apps:
+## Releasing
 
-```bash
-composer config repositories.private-packages composer https://packages.example.com
-composer require irajul/filament-shadcn-theme:^1.0
-```
-
-Tag releases before rebuilding Satis:
+Before tagging a release:
 
 ```bash
 composer validate --strict
@@ -404,10 +435,11 @@ git tag v1.0.0
 git push origin main --tags
 ```
 
-## Notes For Publishing
+Then create the GitHub release and publish the tag to Packagist if auto-sync is not enabled.
+
+## Notes
 
 - Keep `composer.json` package metadata updated before publishing.
 - Confirm the final Composer package name before tagging the first release.
-- Keep the package private unless you replace the proprietary license.
 - The package does not ship compiled assets. It injects generated CSS through Filament's panel render hook.
 - Register the plugin per panel if your app has multiple Filament panels.

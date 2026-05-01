@@ -5,6 +5,7 @@ namespace Irajul\FilamentShadcnTheme;
 use BackedEnum;
 use Filament\Enums\ThemeMode;
 use Irajul\FilamentShadcnTheme\Enums\BaseColor;
+use Irajul\FilamentShadcnTheme\Enums\CssMode;
 use Irajul\FilamentShadcnTheme\Enums\IconLibrary;
 use Irajul\FilamentShadcnTheme\Enums\MenuAccent;
 use Irajul\FilamentShadcnTheme\Enums\MenuColor;
@@ -29,6 +30,7 @@ class ThemeConfig
         public string $font = 'inter',
         public string $headingFont = 'inherit',
         public IconLibrary $iconLibrary = IconLibrary::Lucide,
+        public CssMode $cssMode = CssMode::Inline,
         public Radius $radius = Radius::None,
         public MenuColor $menuColor = MenuColor::Default,
         public MenuAccent $menuAccent = MenuAccent::Subtle,
@@ -42,6 +44,8 @@ class ThemeConfig
         public array $styleOverrides = [],
         public array $selectorMap = [],
     ) {}
+
+    public bool $radiusWasConfigured = false;
 
     public static function make(): self
     {
@@ -92,6 +96,10 @@ class ThemeConfig
 
         if ($value = $this->value($values, 'iconLibrary', 'icon_library')) {
             $this->iconLibrary($value);
+        }
+
+        if ($value = $this->value($values, 'cssMode', 'css_mode')) {
+            $this->cssMode($value);
         }
 
         if ($value = $this->value($values, 'radius')) {
@@ -199,11 +207,24 @@ class ThemeConfig
         return $this;
     }
 
+    public function cssMode(CssMode|string $mode): self
+    {
+        $this->cssMode = $this->enum($mode, CssMode::class);
+
+        return $this;
+    }
+
     public function radius(Radius|string $radius): self
     {
         $this->radius = $this->enum($radius, Radius::class);
+        $this->radiusWasConfigured = true;
 
         return $this;
+    }
+
+    public function hasExplicitRadius(): bool
+    {
+        return $this->radiusWasConfigured || $this->radius !== Radius::None;
     }
 
     public function menuColor(MenuColor|string $color): self
@@ -303,6 +324,7 @@ class ThemeConfig
             'font' => $this->font,
             'heading_font' => $this->headingFont,
             'icon_library' => $this->iconLibrary->value,
+            'css_mode' => $this->cssMode->value,
             'radius' => $this->radius->value,
             'menu_color' => $this->menuColor->value,
             'menu_accent' => $this->menuAccent->value,

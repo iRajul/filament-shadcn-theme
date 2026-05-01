@@ -6,5 +6,5 @@
 /.gitkeep export-ignore
 /.phpunit.result.cache export-ignore
 /composer.lock export-ignore
-/deploy export-ignore
+/public/vendor export-ignore
 /vendor export-ignore

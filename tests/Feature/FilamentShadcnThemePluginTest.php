@@ -2,6 +2,7 @@
 
 use Filament\Enums\ThemeMode;
 use Irajul\FilamentShadcnTheme\Enums\BaseColor;
+use Irajul\FilamentShadcnTheme\Enums\CssMode;
 use Irajul\FilamentShadcnTheme\Enums\IconLibrary;
 use Irajul\FilamentShadcnTheme\Enums\MenuAccent;
 use Irajul\FilamentShadcnTheme\Enums\MenuColor;
@@ -12,6 +13,7 @@ use Irajul\FilamentShadcnTheme\Enums\SurfaceShadow;
 use Irajul\FilamentShadcnTheme\Enums\ThemeColor;
 use Irajul\FilamentShadcnTheme\FilamentShadcnThemePlugin;
 use Irajul\FilamentShadcnTheme\FilamentShadcnThemeServiceProvider;
+use Irajul\FilamentShadcnTheme\Support\CssAssetManager;
 use Irajul\FilamentShadcnTheme\Support\CssRenderer;
 use Irajul\FilamentShadcnTheme\Support\FontRegistry;
 use Irajul\FilamentShadcnTheme\Support\PaletteRegistry;
@@ -29,6 +31,19 @@ function filamentShadcnThemeTestRenderer(): CssRenderer
     );
 }
 
+function filamentShadcnThemeDeleteTestAssets(): void
+{
+    $directory = public_path('vendor/filament-shadcn-theme');
+
+    foreach (glob($directory.'/*.css') ?: [] as $file) {
+        unlink($file);
+    }
+
+    if (is_dir($directory)) {
+        rmdir($directory);
+    }
+}
+
 it('uses lyra and taupe as publishable package defaults', function (): void {
     $config = ThemeConfig::make();
 
@@ -38,12 +53,137 @@ it('uses lyra and taupe as publishable package defaults', function (): void {
         ->and($config->font)->toBe('inter')
         ->and($config->headingFont)->toBe('inherit')
         ->and($config->iconLibrary)->toBe(IconLibrary::Lucide)
+        ->and($config->cssMode)->toBe(CssMode::Inline)
         ->and($config->radius)->toBe(Radius::None)
         ->and($config->menuColor)->toBe(MenuColor::Default)
         ->and($config->menuAccent)->toBe(MenuAccent::Subtle)
         ->and($config->sidebarVariant)->toBe(SidebarVariant::Sidebar)
         ->and($config->surfaceShadow)->toBe(SurfaceShadow::ExtraSmall)
         ->and($config->style->variables()['fs-sidebar-section-gap'])->toBe('0.375rem');
+});
+
+it('writes hashed CSS assets and clears stale generated files', function (): void {
+    filamentShadcnThemeDeleteTestAssets();
+
+    $manager = new CssAssetManager(filamentShadcnThemeTestRenderer());
+    $config = ThemeConfig::make()
+        ->cssMode(CssMode::CachedAsset)
+        ->style(StyleVariant::Lyra)
+        ->baseColor(BaseColor::Olive);
+
+    $asset = $manager->ensureAsset($config, 'admin');
+    $stalePath = dirname($asset['path']).'/panel-admin-stale.css';
+
+    file_put_contents($stalePath, 'old css');
+
+    $freshAsset = $manager->ensureAsset($config, 'admin');
+
+    expect($asset['filename'])->toStartWith('panel-admin-')
+        ->toEndWith('.css')
+        ->and($asset['url'])->toContain('/vendor/filament-shadcn-theme/'.$asset['filename'])
+        ->and(file_exists($freshAsset['path']))->toBeTrue()
+        ->and(file_get_contents($freshAsset['path']))->toContain('data-filament-shadcn-generated')
+        ->and(file_exists($stalePath))->toBeFalse();
+
+    $changedAsset = $manager->ensureAsset(
+        $config->styleVariables(['fs-main-padding-y' => '9rem']),
+        'admin',
+    );
+
+    expect($changedAsset['path'])
+        ->not->toBe($freshAsset['path'])
+        ->and(file_exists($freshAsset['path']))->toBeFalse()
+        ->and(file_get_contents($changedAsset['path']))->toContain('--fs-main-padding-y: 9rem;')
+        ->and($manager->clear('admin'))->toBe(1)
+        ->and(file_exists($changedAsset['path']))->toBeFalse();
+});
+
+it('registers Artisan commands for warming and clearing cached CSS assets', function (): void {
+    filamentShadcnThemeDeleteTestAssets();
+
+    config()->set('filament-shadcn-theme.css_mode', 'cached-asset');
+
+    $this->artisan('filament-shadcn-theme:cache', ['--panel' => 'admin'])
+        ->assertExitCode(0);
+
+    $files = glob(public_path('vendor/filament-shadcn-theme/panel-admin-*.css')) ?: [];
+
+    expect($files)->toHaveCount(1)
+        ->and(file_get_contents($files[0]))->toContain('data-filament-shadcn-generated');
+
+    $this->artisan('filament-shadcn-theme:clear', ['--panel' => 'admin'])
+        ->assertExitCode(0);
+
+    expect(glob(public_path('vendor/filament-shadcn-theme/panel-admin-*.css')) ?: [])->toBe([]);
+});
+
+it('keeps Lyra sharp by default and honours explicitly configured radius', function (): void {
+    $sharpConfig = ThemeConfig::make()
+        ->style(StyleVariant::Lyra);
+
+    $roundedConfig = ThemeConfig::make()
+        ->style(StyleVariant::Lyra)
+        ->radius(Radius::Small);
+
+    $renderer = filamentShadcnThemeTestRenderer();
+    $sharpCss = $renderer->render($sharpConfig);
+    $roundedCss = $renderer->render($roundedConfig);
+
+    expect($sharpConfig->hasExplicitRadius())->toBeFalse()
+        ->and($roundedConfig->hasExplicitRadius())->toBeTrue()
+        ->and($sharpConfig->style->variables()['fs-card-radius'])->toBe('0')
+        ->and($sharpConfig->style->variables()['fs-control-radius'])->toBe('0')
+        ->and($sharpConfig->style->variables()['fs-button-radius'])->toBe('0')
+        ->and($sharpConfig->style->variables()['fs-dropdown-radius'])->toBe('0')
+        ->and($sharpConfig->style->variables()['fs-sidebar-item-radius'])->toBe('0')
+        ->and($sharpConfig->style->variables()['fs-badge-radius'])->toBe('0')
+        ->and($sharpConfig->style->variables()['fs-checkbox-radius'])->toBe('0')
+        ->and($sharpCss)->toContain('--radius: 0;')
+        ->toContain('--fs-card-radius: 0;')
+        ->toContain('--fs-control-radius: 0;')
+        ->toContain('--fs-button-radius: 0;')
+        ->toContain('--fs-checkbox-radius: 0;')
+        ->toContain('--fs-skeleton-line-radius: 0;')
+        ->and($roundedCss)->toContain('--radius: 0.45rem;')
+        ->toContain('--fs-card-radius: var(--radius-xl);')
+        ->toContain('--fs-control-radius: var(--radius-md);')
+        ->toContain('--fs-button-radius: var(--radius-md);')
+        ->toContain('--fs-button-group-radius: var(--radius-md);')
+        ->toContain('--fs-dropdown-radius: var(--radius-lg);')
+        ->toContain('--fs-sidebar-item-radius: var(--radius-md);')
+        ->toContain('--fs-dropdown-item-radius: var(--radius-sm);')
+        ->toContain('--fs-badge-radius: var(--radius-md);')
+        ->toContain('--fs-checkbox-radius: var(--radius-sm);')
+        ->toContain('--fs-table-header-button-radius: var(--radius-sm);')
+        ->toContain('--fs-pagination-radius: var(--radius-md);')
+        ->toContain('--fs-tab-list-radius: var(--radius-md);')
+        ->toContain('--fs-tab-item-radius: var(--radius-sm);')
+        ->toContain('--fs-rich-editor-tool-radius: var(--radius-sm);')
+        ->toContain('--fs-skeleton-line-radius: var(--radius-md);')
+        ->toContain('border-radius: var(--fs-control-radius) !important;')
+        ->toContain('border-radius: var(--fs-button-radius) !important;')
+        ->toContain('border-radius: var(--fs-dropdown-radius) !important;')
+        ->toContain('.fi-input-wrp .fi-select-input')
+        ->toContain('border: 0 !important;')
+        ->toContain('.fi-fo-toggle-buttons-btn-ctn:has(.fi-fo-toggle-buttons-input:checked) .fi-btn')
+        ->toContain('background: color-mix(in oklch, var(--color-400, var(--primary)) 18%, transparent) !important;')
+        ->toContain('html.fi.dark .fi-fo-toggle-buttons-btn-ctn:has(.fi-fo-toggle-buttons-input:checked) .fi-btn')
+        ->toContain('.fi-toggle.fi-toggle-off')
+        ->toContain('background-color: var(--input) !important;')
+        ->toContain('html.fi.dark .fi-toggle.fi-toggle-off > div')
+        ->toContain('background: var(--foreground) !important;')
+        ->toContain('.fi-toggle.fi-toggle-on')
+        ->toContain('background-color: var(--primary) !important;')
+        ->toContain('.fi-toggle.fi-toggle-on > div')
+        ->toContain('background: var(--primary-foreground) !important;')
+        ->toContain('.fi-fo-rich-editor-toolbar')
+        ->toContain('border-bottom: 1px solid var(--border) !important;')
+        ->toContain('.fi-fo-table-repeater')
+        ->toContain('.fi-fo-table-repeater table')
+        ->toContain('border-radius: var(--fs-card-radius) !important;')
+        ->toContain('.fi-fo-table-repeater tbody tr:last-child td:last-child')
+        ->toContain('border-end-end-radius: var(--fs-card-radius) !important;')
+        ->toContain('.fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-badge');
 });
 
 it('renders configurable shadcn tokens and Filament selectors without a host app test case', function (): void {
@@ -118,6 +258,7 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('.fi-body-has-topbar .fi-sidebar-header-ctn')
         ->toContain('.fi-sidebar-group.fi-collapsed .fi-sidebar-group-items')
         ->toContain('.fi-topbar-collapse-sidebar-btn-ctn')
+        ->toContain('.fi-topbar > .fi-topbar-open-sidebar-btn')
         ->toContain('.fi-topbar > .fi-topbar-close-sidebar-btn')
         ->toContain('.fi-page-header-main-ctn')
         ->toContain('.fi-topbar::before')
@@ -132,7 +273,13 @@ it('renders configurable shadcn tokens and Filament selectors without a host app
         ->toContain('padding: var(--fs-table-content-padding) !important;')
         ->toContain('.fi-ta-table thead tr')
         ->toContain('.fi-ta-row:has(.fi-ta-record-checkbox:checked)')
+        ->toContain('.fi-ta-table thead .fi-ta-header-cell:not(.fi-ta-selection-cell)')
+        ->toContain('padding-inline: var(--fs-table-cell-padding-x) !important;')
+        ->toContain('text-align: start !important;')
         ->toContain('.fi-ta-table thead .fi-ta-header-cell:not(.fi-ta-selection-cell):first-child')
+        ->toContain('padding-inline-start: calc(var(--fs-table-edge-padding-x) + var(--fs-table-cell-padding-x)) !important;')
+        ->toContain('.fi-ta-table thead .fi-ta-selection-cell + .fi-ta-header-cell')
+        ->toContain('.fi-ta-table tbody .fi-ta-selection-cell + .fi-ta-cell')
         ->toContain('.fi-ta-table .fi-ta-col > .fi-ta-text')
         ->toContain('padding: var(--fs-table-cell-padding-y) var(--fs-table-cell-padding-x) !important;')
         ->toContain('.fi-ta-table .fi-ta-actions .fi-icon-btn.fi-ac-icon-btn-group')
@@ -274,6 +421,7 @@ it('builds fluent plugin configuration without reading host application config',
         ->font('geist')
         ->headingFont('space-grotesk')
         ->iconLibrary('lucide')
+        ->cssMode('cached-asset')
         ->radius('medium')
         ->menuColor('default-translucent')
         ->menuAccent('bold')
@@ -299,6 +447,7 @@ it('builds fluent plugin configuration without reading host application config',
         ->and($plugin->config()->font)->toBe('geist')
         ->and($plugin->config()->headingFont)->toBe('space-grotesk')
         ->and($plugin->config()->iconLibrary)->toBe(IconLibrary::Lucide)
+        ->and($plugin->config()->cssMode)->toBe(CssMode::CachedAsset)
         ->and($plugin->config()->radius)->toBe(Radius::Medium)
         ->and($plugin->config()->menuColor)->toBe(MenuColor::DefaultTranslucent)
         ->and($plugin->config()->menuAccent)->toBe(MenuAccent::Bold)
@@ -315,6 +464,7 @@ it('builds fluent plugin configuration without reading host application config',
 it('loads publishable defaults through the Laravel service provider', function (): void {
     expect(config('filament-shadcn-theme.style'))->toBe('lyra')
         ->and(config('filament-shadcn-theme.base_color'))->toBe('taupe')
+        ->and(config('filament-shadcn-theme.css_mode'))->toBe('inline')
         ->and(config('filament-shadcn-theme.radius'))->toBe('none')
         ->and(config('filament-shadcn-theme.apply_panel_font'))->toBeTrue();
 
@@ -333,6 +483,7 @@ it('hydrates configuration from snake case or camel case arrays', function (): v
         'chart_color' => 'rose',
         'headingFont' => 'manrope',
         'icon_library' => 'tabler',
+        'css_mode' => 'cached-asset',
         'menu_color' => 'inverted-translucent',
         'sidebarVariant' => 'inset',
         'surface_shadow' => 'md',
@@ -349,6 +500,7 @@ it('hydrates configuration from snake case or camel case arrays', function (): v
         ->and($config->chartColor)->toBe(ThemeColor::Rose)
         ->and($config->headingFont)->toBe('manrope')
         ->and($config->iconLibrary)->toBe(IconLibrary::Tabler)
+        ->and($config->cssMode)->toBe(CssMode::CachedAsset)
         ->and($config->menuColor)->toBe(MenuColor::InvertedTranslucent)
         ->and($config->sidebarVariant)->toBe(SidebarVariant::Inset)
         ->and($config->surfaceShadow)->toBe(SurfaceShadow::Medium)
@@ -366,6 +518,8 @@ it('keeps option enums aligned with the shadcn customizer surface', function ():
         ->toBe(['vega', 'nova', 'maia', 'lyra', 'mira', 'luma', 'sera'])
         ->and(array_map(fn (ThemeColor $color): string => $color->value, ThemeColor::cases()))
         ->toContain('taupe', 'lime', 'emerald', 'violet', 'rose', 'neutral')
+        ->and(array_map(fn (CssMode $mode): string => $mode->value, CssMode::cases()))
+        ->toBe(['inline', 'cached-asset'])
         ->and(array_map(fn (Radius $radius): string => $radius->value, Radius::cases()))
         ->toBe(['default', 'none', 'small', 'medium', 'large'])
         ->and(array_map(fn (IconLibrary $library): string => $library->value, IconLibrary::cases()))
@@ -393,6 +547,7 @@ it('declares package discovery metadata and publishable defaults', function (): 
         ->and($config['style'])->toBe('lyra')
         ->and($config['base_color'])->toBe('taupe')
         ->and($config['theme_color'])->toBe('taupe')
+        ->and($config['css_mode'])->toBe('inline')
         ->and($config['radius'])->toBe('none')
         ->and($config['surface_shadow'])->toBe('xs');
 });

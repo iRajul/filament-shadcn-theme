@@ -9,6 +9,7 @@ use Filament\Panel;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\HtmlString;
 use Irajul\FilamentShadcnTheme\Enums\BaseColor;
+use Irajul\FilamentShadcnTheme\Enums\CssMode;
 use Irajul\FilamentShadcnTheme\Enums\IconLibrary;
 use Irajul\FilamentShadcnTheme\Enums\MenuAccent;
 use Irajul\FilamentShadcnTheme\Enums\MenuColor;
@@ -17,6 +18,7 @@ use Irajul\FilamentShadcnTheme\Enums\SidebarVariant;
 use Irajul\FilamentShadcnTheme\Enums\StyleVariant;
 use Irajul\FilamentShadcnTheme\Enums\SurfaceShadow;
 use Irajul\FilamentShadcnTheme\Enums\ThemeColor;
+use Irajul\FilamentShadcnTheme\Support\CssAssetManager;
 use Irajul\FilamentShadcnTheme\Support\CssRenderer;
 use Irajul\FilamentShadcnTheme\Support\FontRegistry;
 use Irajul\FilamentShadcnTheme\Support\PaletteRegistry;
@@ -60,9 +62,7 @@ class FilamentShadcnThemePlugin implements Plugin
 
         $panel->renderHook(
             PanelsRenderHook::STYLES_AFTER,
-            fn (): HtmlString => new HtmlString(
-                '<style data-filament-shadcn-theme="'.self::Id.'">'.app(CssRenderer::class)->render($this->config).'</style>',
-            ),
+            fn (): HtmlString => $this->renderStyles($panel->getId()),
         );
     }
 
@@ -145,6 +145,13 @@ class FilamentShadcnThemePlugin implements Plugin
         return $this;
     }
 
+    public function cssMode(CssMode|string $mode): self
+    {
+        $this->config->cssMode($mode);
+
+        return $this;
+    }
+
     public function radius(Radius|string $radius): self
     {
         $this->config->radius($radius);
@@ -223,5 +230,25 @@ class FilamentShadcnThemePlugin implements Plugin
         $this->config->darkMode($enabled, $forced);
 
         return $this;
+    }
+
+    private function renderStyles(?string $panelId = null): HtmlString
+    {
+        if ($this->config->cssMode === CssMode::CachedAsset) {
+            $asset = app(CssAssetManager::class)->ensureAsset($this->config, $panelId);
+
+            return new HtmlString(
+                '<link data-filament-shadcn-theme="'.self::Id.'" rel="stylesheet" href="'.$this->escapeAttribute($asset['url']).'">',
+            );
+        }
+
+        return new HtmlString(
+            '<style data-filament-shadcn-theme="'.self::Id.'">'.app(CssRenderer::class)->render($this->config).'</style>',
+        );
+    }
+
+    private function escapeAttribute(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 }

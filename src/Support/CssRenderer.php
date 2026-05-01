@@ -35,6 +35,7 @@ class CssRenderer
                 '--collapsed-sidebar-width' => 'var(--fs-collapsed-sidebar-width) !important',
             ],
             $config->style->variables(),
+            $this->explicitRadiusVariables($config),
             $config->sidebarVariant->variables(),
             $config->styleOverrides,
             $this->paletteVariables($config),
@@ -47,6 +48,34 @@ class CssRenderer
             "html.fi.dark {\n{$this->declarations(array_merge(['color-scheme' => 'dark'], $tokens['dark']))}\n}",
             $this->componentCss($selectors, $config),
         ]))."\n";
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function explicitRadiusVariables(ThemeConfig $config): array
+    {
+        if (! $config->hasExplicitRadius()) {
+            return [];
+        }
+
+        return [
+            'fs-card-radius' => 'var(--radius-xl)',
+            'fs-control-radius' => 'var(--radius-md)',
+            'fs-button-radius' => 'var(--radius-md)',
+            'fs-button-group-radius' => 'var(--radius-md)',
+            'fs-dropdown-radius' => 'var(--radius-lg)',
+            'fs-sidebar-item-radius' => 'var(--radius-md)',
+            'fs-dropdown-item-radius' => 'var(--radius-sm)',
+            'fs-badge-radius' => 'var(--radius-md)',
+            'fs-checkbox-radius' => 'var(--radius-sm)',
+            'fs-table-header-button-radius' => 'var(--radius-sm)',
+            'fs-pagination-radius' => 'var(--radius-md)',
+            'fs-tab-list-radius' => 'var(--radius-md)',
+            'fs-tab-item-radius' => 'var(--radius-sm)',
+            'fs-rich-editor-tool-radius' => 'var(--radius-sm)',
+            'fs-skeleton-line-radius' => 'var(--radius-md)',
+        ];
     }
 
     /**
@@ -92,7 +121,7 @@ class CssRenderer
             'cardHeader' => '.fi-section-header, .fi-ta-header-ctn, .fi-modal-header, .fi-fo-repeater-item-header',
             'cardContent' => '.fi-section-content-ctn, .fi-section-content, .fi-ta-content-ctn, .fi-modal-content',
             'cardFooter' => '.fi-section-footer, .fi-ta-footer-ctn, .fi-modal-footer',
-            'inputWrapper' => '.fi-input-wrp, .fi-select-input, .fi-tags-input, .fi-fo-rich-editor, .fi-fo-rich-editor-toolbar, .fi-fo-rich-editor-panel',
+            'inputWrapper' => '.fi-input-wrp, .fi-tags-input, .fi-fo-rich-editor, .fi-fo-rich-editor-panel',
             'input' => '.fi-input, .fi-select-input, .fi-textarea, .fi-tags-input input',
             'fieldLabel' => '.fi-fo-field-label, .fi-input-wrp-label, .fi-ta-filters-heading',
             'fieldError' => '.fi-fo-field-wrp-error-message, .fi-fo-field-label-required-mark',
@@ -349,10 +378,8 @@ class CssRenderer
         top: var(--fs-collapsed-sidebar-top) !important;
     }
 
-    .fi-body-has-sidebar-collapsible-on-desktop .fi-topbar > .fi-topbar-open-sidebar-btn,
-    .fi-body-has-sidebar-collapsible-on-desktop .fi-topbar > .fi-topbar-close-sidebar-btn,
-    .fi-body-has-sidebar-fully-collapsible-on-desktop .fi-topbar > .fi-topbar-open-sidebar-btn,
-    .fi-body-has-sidebar-fully-collapsible-on-desktop .fi-topbar > .fi-topbar-close-sidebar-btn {
+    .fi-topbar > .fi-topbar-open-sidebar-btn,
+    .fi-topbar > .fi-topbar-close-sidebar-btn {
         display: var(--fs-topbar-mobile-sidebar-button-desktop-display) !important;
     }
 }
@@ -634,7 +661,7 @@ class CssRenderer
     min-height: var(--fs-control-height);
     background: var(--fs-input-background) !important;
     border: 1px solid var(--input) !important;
-    border-radius: var(--radius-md) !important;
+    border-radius: var(--fs-control-radius) !important;
     color: var(--foreground);
     box-shadow: var(--fs-input-shadow) !important;
     transition: border-color var(--fs-transition-duration), box-shadow var(--fs-transition-duration), background-color var(--fs-transition-duration);
@@ -654,8 +681,89 @@ class CssRenderer
     font-size: var(--fs-font-size-sm);
 }
 
+.fi-input-wrp .fi-select-input {
+    min-height: auto;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: inherit !important;
+    box-shadow: none !important;
+    color: var(--foreground) !important;
+}
+
+.fi-input-wrp.fi-disabled,
+.fi-input-wrp:has(:disabled) {
+    background: color-mix(in oklch, var(--muted) 55%, transparent) !important;
+    color: var(--muted-foreground) !important;
+}
+
+.fi-input-wrp.fi-disabled .fi-input,
+.fi-input:disabled,
+.fi-select-input:has(:disabled) {
+    color: var(--muted-foreground) !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: var(--muted-foreground) !important;
+}
+
+.fi-input-wrp .fi-icon-btn {
+    min-height: calc(var(--fs-control-height) - 2px);
+    width: calc(var(--fs-control-height) - 2px);
+}
+
+.fi-input-wrp .fi-icon-btn:hover {
+    background: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
 {$selectors['input']}::placeholder {
     color: var(--muted-foreground) !important;
+}
+
+.fi-input-wrp.fi-fo-rich-editor {
+    display: block;
+    min-height: 0;
+    padding: 0 !important;
+}
+
+.fi-fo-rich-editor-toolbar {
+    min-height: 0;
+    background: color-mix(in oklch, var(--muted) 42%, transparent) !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    gap: 0.25rem !important;
+    padding: 0.5rem !important;
+}
+
+.fi-fo-rich-editor-toolbar-group {
+    gap: 0.125rem !important;
+}
+
+.fi-fo-rich-editor-tool {
+    min-height: var(--fs-control-height-sm);
+    border-radius: var(--fs-rich-editor-tool-radius) !important;
+    color: var(--muted-foreground) !important;
+    transition: background-color var(--fs-transition-duration), color var(--fs-transition-duration);
+}
+
+.fi-fo-rich-editor-tool:hover,
+.fi-fo-rich-editor-tool.fi-active,
+.fi-fo-rich-editor-tool[aria-pressed="true"] {
+    background: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
+.fi-fo-rich-editor-main {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+.fi-fo-rich-editor-content {
+    color: var(--foreground) !important;
+    font-size: var(--fs-font-size-sm);
+    line-height: var(--fs-line-height);
+    min-height: 5rem;
+    padding: 0.75rem 1rem !important;
 }
 
 {$selectors['fieldLabel']} {
@@ -673,7 +781,7 @@ class CssRenderer
 {$selectors['pagination']} {
     min-height: var(--fs-control-height);
     align-items: center;
-    border-radius: var(--radius-md) !important;
+    border-radius: var(--fs-button-radius) !important;
     box-shadow: none !important;
     display: inline-flex;
     gap: 0.5rem;
@@ -700,6 +808,29 @@ class CssRenderer
     border-color: color-mix(in oklch, var(--primary) 88%, var(--foreground)) !important;
 }
 
+.fi-btn.fi-ac-btn-action.fi-color-danger {
+    background: var(--destructive) !important;
+    border-color: var(--destructive) !important;
+    color: var(--destructive-foreground) !important;
+}
+
+.fi-btn.fi-ac-btn-action.fi-color-danger:hover {
+    background: color-mix(in oklch, var(--destructive) 88%, var(--foreground)) !important;
+    border-color: color-mix(in oklch, var(--destructive) 88%, var(--foreground)) !important;
+    color: var(--destructive-foreground) !important;
+}
+
+.fi-icon-btn.fi-color-danger {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--destructive) !important;
+}
+
+.fi-icon-btn.fi-color-danger:hover {
+    background: color-mix(in oklch, var(--destructive) 12%, transparent) !important;
+    color: var(--destructive) !important;
+}
+
 {$selectors['secondaryButton']} {
     background: var(--secondary) !important;
     border-color: transparent !important;
@@ -722,16 +853,21 @@ class CssRenderer
     color: var(--accent-foreground) !important;
 }
 
+{$selectors['iconButton']}:not(.fi-color-primary):not(.fi-color-danger):hover {
+    background: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
 {$selectors['buttonGroup']} {
     border-color: var(--border) !important;
-    border-radius: var(--radius-md) !important;
+    border-radius: var(--fs-button-group-radius) !important;
     box-shadow: none !important;
 }
 
 {$selectors['dropdown']} {
     background: var(--popover) !important;
     border: 1px solid var(--border) !important;
-    border-radius: var(--radius-lg) !important;
+    border-radius: var(--fs-dropdown-radius) !important;
     color: var(--popover-foreground);
     box-shadow: var(--fs-surface-shadow) !important;
 }
@@ -822,7 +958,7 @@ class CssRenderer
 
 {$selectors['tableHeaderButton']} {
     color: var(--muted-foreground) !important;
-    border-radius: var(--radius-sm) !important;
+    border-radius: var(--fs-table-header-button-radius) !important;
 }
 
 {$tableHeaderButtonHover} {
@@ -852,6 +988,7 @@ class CssRenderer
 
 .fi-ta-selection-cell {
     padding-inline: var(--fs-table-selection-cell-padding-left) var(--fs-table-selection-cell-padding-right) !important;
+    text-align: start !important;
     width: var(--fs-table-selection-cell-width);
 }
 
@@ -859,8 +996,23 @@ class CssRenderer
     transform: translateY(1px);
 }
 
-.fi-ta-table thead .fi-ta-header-cell:not(.fi-ta-selection-cell):first-child,
+.fi-ta-table thead .fi-ta-header-cell:not(.fi-ta-selection-cell) {
+    padding-inline: var(--fs-table-cell-padding-x) !important;
+}
+
+.fi-ta-table thead .fi-ta-header-cell:not(.fi-ta-selection-cell):first-child {
+    padding-inline-start: calc(var(--fs-table-edge-padding-x) + var(--fs-table-cell-padding-x)) !important;
+}
+
 .fi-ta-table tbody .fi-ta-cell:not(.fi-ta-selection-cell):first-child {
+    padding-inline-start: var(--fs-table-edge-padding-x) !important;
+}
+
+.fi-ta-table thead .fi-ta-selection-cell + .fi-ta-header-cell {
+    padding-inline-start: calc(var(--fs-table-edge-padding-x) + var(--fs-table-cell-padding-x)) !important;
+}
+
+.fi-ta-table tbody .fi-ta-selection-cell + .fi-ta-cell {
     padding-inline-start: var(--fs-table-edge-padding-x) !important;
 }
 
@@ -954,7 +1106,7 @@ class CssRenderer
 .fi-pagination-items {
     background: var(--background) !important;
     border: 1px solid var(--border) !important;
-    border-radius: var(--radius-md) !important;
+    border-radius: var(--fs-pagination-radius) !important;
     box-shadow: none !important;
     display: flex !important;
     flex-shrink: 0;
@@ -1005,14 +1157,14 @@ class CssRenderer
 
 {$selectors['tabs']} {
     background: var(--muted) !important;
-    border-radius: var(--radius-md) !important;
+    border-radius: var(--fs-tab-list-radius) !important;
     border: 1px solid var(--border) !important;
     box-shadow: none !important;
     padding: 0.25rem !important;
 }
 
 {$selectors['tabItem']} {
-    border-radius: var(--radius-sm) !important;
+    border-radius: var(--fs-tab-item-radius) !important;
     color: var(--muted-foreground) !important;
     min-height: var(--fs-control-height-sm);
 }
@@ -1023,6 +1175,112 @@ class CssRenderer
     box-shadow: var(--fs-input-shadow) !important;
 }
 
+.fi-fo-toggle-buttons {
+    align-items: center;
+    gap: 0.375rem !important;
+}
+
+.fi-fo-toggle-buttons-btn-ctn {
+    display: inline-flex;
+}
+
+.fi-fo-toggle-buttons .fi-btn {
+    min-height: var(--fs-control-height-sm);
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--foreground) !important;
+    padding-inline: 0.625rem !important;
+}
+
+.fi-fo-toggle-buttons .fi-btn svg {
+    color: currentColor !important;
+}
+
+.fi-fo-toggle-buttons .fi-btn:hover {
+    background: color-mix(in oklch, var(--color-400, var(--accent)) 10%, transparent) !important;
+    border-color: color-mix(in oklch, var(--color-400, var(--border)) 22%, transparent) !important;
+    color: color-mix(in oklch, var(--color-900, var(--foreground)) 82%, var(--foreground)) !important;
+}
+
+.fi-fo-toggle-buttons-btn-ctn:has(.fi-fo-toggle-buttons-input:checked) .fi-btn {
+    background: color-mix(in oklch, var(--color-400, var(--primary)) 18%, transparent) !important;
+    border-color: color-mix(in oklch, var(--color-400, var(--primary)) 38%, transparent) !important;
+    color: var(--color-900, var(--foreground)) !important;
+}
+
+.fi-fo-toggle-buttons-btn-ctn:has(.fi-fo-toggle-buttons-input:checked) .fi-btn:hover {
+    background: color-mix(in oklch, var(--color-400, var(--primary)) 24%, transparent) !important;
+    border-color: color-mix(in oklch, var(--color-400, var(--primary)) 48%, transparent) !important;
+    color: var(--color-950, var(--foreground)) !important;
+}
+
+html.fi.dark .fi-fo-toggle-buttons-btn-ctn:has(.fi-fo-toggle-buttons-input:checked) .fi-btn {
+    background: color-mix(in oklch, var(--color-400, var(--primary)) 24%, transparent) !important;
+    border-color: color-mix(in oklch, var(--color-400, var(--primary)) 45%, transparent) !important;
+    color: var(--color-200, var(--foreground)) !important;
+}
+
+.fi-fo-table-repeater {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--fs-card-radius) !important;
+    box-shadow: var(--fs-input-shadow) !important;
+    color: var(--card-foreground) !important;
+    overflow: hidden;
+}
+
+.fi-fo-table-repeater table {
+    border-collapse: collapse;
+    border-radius: var(--fs-card-radius) !important;
+    overflow: hidden;
+    width: 100%;
+}
+
+.fi-fo-table-repeater thead {
+    background: var(--fs-table-header-background) !important;
+}
+
+.fi-fo-table-repeater th {
+    color: var(--muted-foreground) !important;
+    font-size: var(--fs-font-size-sm);
+    font-weight: 500;
+}
+
+.fi-fo-table-repeater tbody tr {
+    border-top: 1px solid var(--border) !important;
+}
+
+.fi-fo-table-repeater td,
+.fi-fo-table-repeater th {
+    border-color: var(--border) !important;
+    padding: 0.75rem !important;
+}
+
+.fi-fo-table-repeater thead tr:first-child th:first-child {
+    border-start-start-radius: var(--fs-card-radius) !important;
+}
+
+.fi-fo-table-repeater thead tr:first-child th:last-child {
+    border-start-end-radius: var(--fs-card-radius) !important;
+}
+
+.fi-fo-table-repeater tbody tr:last-child td:first-child {
+    border-end-start-radius: var(--fs-card-radius) !important;
+}
+
+.fi-fo-table-repeater tbody tr:last-child td:last-child {
+    border-end-end-radius: var(--fs-card-radius) !important;
+}
+
+.fi-fo-table-repeater-actions {
+    gap: var(--fs-table-actions-gap) !important;
+}
+
+.fi-fo-table-repeater-add {
+    border-top: 1px solid var(--border) !important;
+    padding: 0.875rem !important;
+}
+
 {$selectors['badge']} {
     border: 1px solid color-mix(in oklch, var(--border) 70%, transparent) !important;
     border-radius: var(--fs-badge-radius) !important;
@@ -1030,6 +1288,17 @@ class CssRenderer
     color: var(--secondary-foreground) !important;
     box-shadow: none !important;
     font-weight: 500;
+}
+
+.fi-sidebar-item-badge-ctn .fi-badge {
+    min-height: 1.25rem;
+    padding: 0 0.45rem !important;
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-badge {
+    background: color-mix(in oklch, var(--sidebar-accent-foreground) 12%, transparent) !important;
+    border-color: color-mix(in oklch, var(--sidebar-accent-foreground) 22%, transparent) !important;
+    color: var(--sidebar-accent-foreground) !important;
 }
 
 .fi-badge.fi-color-primary {
@@ -1086,6 +1355,38 @@ html.fi.dark .fi-checkbox-input:indeterminate {
     background-color: var(--fs-checkbox-checked-background) !important;
     border-color: var(--fs-checkbox-checked-border-color) !important;
     color: var(--fs-checkbox-checked-color) !important;
+}
+
+.fi-toggle.fi-toggle-off,
+.fi-toggle[aria-checked="false"] {
+    background-color: var(--input) !important;
+    border-color: transparent !important;
+    color: var(--foreground) !important;
+}
+
+.fi-toggle.fi-toggle-off > div,
+.fi-toggle[aria-checked="false"] > div {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+html.fi.dark .fi-toggle.fi-toggle-off > div,
+html.fi.dark .fi-toggle[aria-checked="false"] > div {
+    background: var(--foreground) !important;
+    color: var(--background) !important;
+}
+
+.fi-toggle.fi-toggle-on,
+.fi-toggle[aria-checked="true"] {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+}
+
+.fi-toggle.fi-toggle-on > div,
+.fi-toggle[aria-checked="true"] > div {
+    background: var(--primary-foreground) !important;
+    color: var(--primary) !important;
 }
 
 {$focusableFocus} {

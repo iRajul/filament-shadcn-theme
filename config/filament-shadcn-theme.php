@@ -8,6 +8,7 @@ return [
     'font' => 'inter',
     'heading_font' => 'inherit',
     'icon_library' => 'lucide',
+    'css_mode' => 'inline',
     'radius' => 'none',
     'menu_color' => 'default',
     'menu_accent' => 'subtle',
