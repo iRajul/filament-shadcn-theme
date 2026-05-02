@@ -36,13 +36,8 @@ jobs:
       - name: Validate Composer metadata
         run: composer validate --strict
 
-      - name: Select Laravel dependency line
-        run: |
-          composer require --no-update "illuminate/support:${{ matrix.illuminate }}"
-          composer require --dev --no-update "orchestra/testbench:${{ matrix.testbench }}"
-
       - name: Install dependencies
-        run: composer update --no-interaction --prefer-dist --no-progress
+        run: composer update --with "illuminate/support:${{ matrix.illuminate }}" --with "orchestra/testbench:${{ matrix.testbench }}" --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
       - name: Run tests
         run: composer test
