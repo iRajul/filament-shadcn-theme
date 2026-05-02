@@ -16,8 +16,8 @@ The package maps shadcn-style tokens onto Filament's generated HTML, so it can t
 
 ## Requirements
 
-- PHP 8.2 or higher
-- Laravel 11 or 12
+- PHP 8.3 or higher
+- Laravel 12 or 13
 - Filament 5
 
 ## Installation
@@ -435,7 +435,9 @@ git tag v1.0.0
 git push origin main --tags
 ```
 
-Then create the GitHub release and publish the tag to Packagist if auto-sync is not enabled.
+Then create the GitHub release and publish the tag to Packagist. Packagist reads versions from Git tags, so keep the `version` field out of `composer.json`.
+
+For Packagist, submit the public GitHub repository URL once and enable the Packagist GitHub hook or application sync. No GitHub Action is required for Packagist updates; the hook updates the package when tags are pushed.
 
 ## Notes
 
