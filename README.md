@@ -2,6 +2,10 @@
 
 A configurable shadcn-inspired theme plugin for Filament v5 panels.
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/irajul/filament-shadcn-theme.svg)](https://packagist.org/packages/irajul/filament-shadcn-theme)
+[![Total Downloads](https://img.shields.io/packagist/dt/irajul/filament-shadcn-theme.svg)](https://packagist.org/packages/irajul/filament-shadcn-theme)
+[![PHP Version Require](https://img.shields.io/packagist/php-v/irajul/filament-shadcn-theme.svg)](https://packagist.org/packages/irajul/filament-shadcn-theme)
+[![License](https://img.shields.io/packagist/l/irajul/filament-shadcn-theme.svg)](LICENSE.md)
 [![Tests](https://github.com/iRajul/filament-shadcn-theme/actions/workflows/tests.yml/badge.svg)](https://github.com/iRajul/filament-shadcn-theme/actions/workflows/tests.yml)
 
 The package maps shadcn-style tokens onto Filament's generated HTML, so it can theme navigation, topbar, cards, forms, tables, pagination, checkboxes, empty states, modals, dropdowns, widgets, and light/dark mode without requiring a Vite asset build.
